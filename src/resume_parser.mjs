@@ -5,9 +5,9 @@ import { promises as fs } from 'fs';
 import mammoth from 'mammoth';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const RESUME_SCHEMA_PATH =   './resume-inputs/resume-schema.json';
-const RESUME_DOCX_PATH =     './resume-inputs/resume.docx';
-const RESUME_DOCX_JSON_PATH = './resume-outputs/resume.docx.json';
+const RESUME_SCHEMA_PATH =   './inputs/resume-schema.json';
+const RESUME_DOCX_PATH =     './inputs/resume.docx';
+const RESUME_DOCX_JSON_PATH = './outputs/resume.docx.json';
 
 async function getResumeSchema() {
   try {
@@ -47,6 +47,7 @@ async function getResumeDataPrompt() {
       ${resumeSchemaString}
   The schema ends here.
   `;
+  console.log(`<PROMPT>${prompt}</PROMPT>`);
   return prompt;
 }
 
@@ -71,7 +72,7 @@ async function processResume() {
     const data = {
       prompt: await getResumeDataPrompt() + `. Assistant: `,
       model: 'claude-v1',
-      max_tokens_to_sample: 300,
+      max_tokens_to_sample: 6000,
     };
 
     const response = await axios.post('https://api.anthropic.com/v1/complete', data, {
@@ -104,4 +105,8 @@ async function processResume() {
 }
 
 // Call the processResume function
-processResume().catch(console.error);
+try {
+  await processResume();
+} catch (error) {
+  console.error('Error processing resume:', error);
+}
