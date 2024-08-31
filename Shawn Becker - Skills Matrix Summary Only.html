@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" class="dk-md">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shawn Becker - Skills Matrix Summary</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --bar-bg-color: #e0e0e0;
+            --bar-fill-color: #4CAF50;
+        }
+        .dk-md {
+            --bg-color: #464646;
+            --text-color: #ffffff;
+            --bar-bg-color: #303030;
+            --bar-fill-color: #45a049;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        h1 {
+            text-align: center;
+        }
+        .k-ctg {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .k-nm {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1;
+            color: white;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: calc(100% - 70px);
+        }
+        .k-bar {
+            width: 100%;
+            height: 30px;
+            background-color: var(--bar-bg-color);
+            position: relative;
+        }
+        .k-fl {
+            height: 100%;
+            background-color: var(--bar-fill-color);
+        }
+        .k-yr {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        ul {
+            margin-top: 5px;
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+        .tgl-btn {
+            position: fixed;
+            padding: 5px 10px;
+            background-color: var(--bar-fill-color);
+            color: var(--bg-color);
+            border: none;
+            cursor: pointer;
+        }
+        #md-tgl {
+            top: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <button id="md-tgl" class="tgl-btn">Toggle Light Mode</button>
+    <h1>Shawn Becker - Skills Matrix Summary</h1>
+    <div id="k-container">
+        <div class="k-ctg">
+            <div class="k-bar">
+                <div class="k-fl" style="width: 75%;"></div>
+                <span class="k-nm">Databases</span>
+                <span class="k-yr">15 years</span>
+            </div>
+        </div>
+        <div class="k-ctg">
+            <div class="k-bar">
+                <div class="k-fl" style="width: 75%;"></div>
+                <span class="k-nm">Cloud Technologies</span>
+                <span class="k-yr">15 years</span>
+            </div>
+        </div>
+        <div class="k-ctg">
+            <div class="k-bar">
+                <div class="k-fl" style="width: 75%;"></div>
+                <span class="k-nm">Data Engineering</span>
+                <span class="k-yr">15 years</span>
+            </div>
+        </div>
+        <div class="k-ctg">
+            <div class="k-bar">
+                <div class="k-fl" style="width: 100%;"></div>
+                <span class="k-nm">Programming Languages</span>
+                <span class="k-yr">20 years</span>
+            </div>
+        </div>
+        <div class="k-ctg">
+            <div class="k-bar">
+                <div class="k-fl" style="width: 50%;"></div>
+                <span class="k-nm">Big Data Technologies</span>
+                <span class="k-yr">10 years</span>
+            </div>
+        </div>
+        <div class="k-ctg">
+            <div class="k-bar">
+                <div class="k-fl" style="width: 75%;"></div>
+                <span class="k-nm">Agile & Project Management</span>
+                <span class="k-yr">15 years</span>
+            </div>
+        </div>
+        <div class="k-ctg">
+            <div class="k-bar">
+                <div class="k-fl" style="width: 75%;"></div>
+                <span class="k-nm">Data Modeling</span>
+                <span class="k-yr">15 years</span>
+            </div>
+        </div>
+        <div class="k-ctg">
+            <div class="k-bar">
+                <div class="k-fl" style="width: 100%;"></div>
+                <span class="k-nm">Soft Skills</span>
+                <span class="k-yr">20 years</span>
+            </div>
+        </div>
+    </div>
+    <script>
+        const m-tg = document.getElementById('md-tgl');
+        const body = document.body;
+        const html = document.documentElement;
+
+        m-tg.addEventListener('click', () => {
+            html.classList.toggle('dk-md');
+            m-tg.textContent = html.classList.contains('dk-md') ? 'Toggle Light Mode' : 'Toggle Dark Mode';
+        });
+
+    </script>
+</body>
+</html>

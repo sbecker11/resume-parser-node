@@ -1,0 +1,62 @@
+Category,Skill,Years experience
+Databases,Relational (PostgreSQL MySQL Oracle SQLServer),15
+Databases,Warehouse OLAP (Redshift columnar),3
+Databases,Dimensional (StarSchema Type 2 SCD),3
+Databases,Snowflake - Hybrid,2
+Databases,NoSQL (AWS DynamoDB Redis ElasticSearch),6
+Databases,Graph (Neo4j AWS Neptune),1
+Databases,RDBMS best practices,3
+Databases,Database performance tuning,3
+Databases,Databricks (Medallion Architecture Delta Lake Lakehouse),2
+Cloud Technologies,AWS (extensive experience),15
+Cloud Technologies,GCP,2
+Cloud Technologies,Azure,1
+Cloud Technologies,Cloud migrations,2
+Cloud Technologies,Cloud data warehouse concepts,7
+Cloud Technologies,AWS Lambda Functions,7
+Cloud Technologies,AWS CloudWatch,7
+Data Engineering,ETL tools,7
+Data Engineering,Data ingestion and analytics,7
+Data Engineering,Structured and unstructured data handling,15
+Data Engineering,Data warehousing concepts,7
+Data Engineering,Data pipeline design and implementation,7
+Data Engineering,Data flow planning,7
+Data Engineering,Troubleshooting data systems,7
+Data Engineering,Data quality management and governance,3
+Data Engineering,Apache Airflow dbt,2
+Data Engineering,Business Intelligence (BI) concepts,7
+Data Engineering,System integrations,15
+Data Engineering,AWS DataPipeline Glue Step Functions,2
+Data Engineering,DataDog,1
+Programming Languages,SQL,15
+Programming Languages,Python,7
+Programming Languages,Java,10
+Programming Languages,C,10
+Programming Languages,Linux/Unix command line,20
+Programming Languages,RESTful APIs,15
+Programming Languages,Version control systems (e.g. Git),15
+Programming Languages,Software development life cycle (SDLC),20
+Programming Languages,Code review,20
+Programming Languages,Software testing and quality assurance,20
+Big Data Technologies,AWS Kinesis Data Streams,3
+Big Data Technologies,AWS Elastic MapReduce,2
+Big Data Technologies,Apache PySpark,3
+Big Data Technologies,"Jupyter Pandas PyTorch Numpy SciPy",3
+Big Data Technologies,"Matplotlib Seaborn Plotly",3
+Agile & Project Management,Agile methodologies,10
+Agile & Project Management,Scrum framework (Certified Scrum Master),10
+Agile & Project Management,Project management,15
+Agile & Project Management,Team collaboration,15
+Agile & Project Management,Time management,15
+Data Modeling,Object modeling (UMLs with business),15
+Data Modeling,Data modeling (ERDs with developers),15
+Data Modeling,Relational data modeling (OLTP - Tables Transactions 3NF),10
+Data Modeling,Multi-dimensional data modeling (OLAP - Facts Dimensions 1NF),3
+Soft Skills,Business requirements analysis,10
+Soft Skills,Technical requirements documentation,10
+Soft Skills,Problem-solving skills,15
+Soft Skills,Analytical thinking,20
+Soft Skills,Communication skills (written and verbal),20
+Soft Skills,Attention to detail,20
+Soft Skills,Continuous learning (keeping up with new technologies),20
+Soft Skills,Data security and privacy concepts,10
