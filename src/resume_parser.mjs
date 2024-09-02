@@ -5,143 +5,133 @@ import mammoth from 'mammoth';
 import Client from "@anthropic-ai/sdk";
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+if ( !ANTHROPIC_API_KEY ) {
+    throw new Error('ANTHROPIC_API_KEY environment variable is not set');
+}
+
 const RESUME_SCHEMA_PATH =   './inputs/resume-schema.json';
 
 async function getResumeSchema() {
   try {
-      const schemaData = await fs.readFile (RESUME_SCHEMA_PATH, 'utf8');
-      return JSON.parse(schemaData);
+    const resumeSchema = await fs.readFile(RESUME_SCHEMA_PATH, 'utf8');
+    return resumeSchema;
   } catch (error) {
       console.error('Error reading resume schema:', error);
       throw error;
   }
 }
 
-async function getResumDocxText(resumeDocxPath) {
-  try {
-    const fileBuffer = await fs.readFile(resumeDocxPath); // Correct usage of readFileSync
-    const result = await mammoth.extractRawText({ buffer: fileBuffer });
-    return result.value;
-  } catch (error) {
-    console.error('Error reading resume text:', error);
-    throw error;
-  }
-}
-
-async function getResumeDataPrompt(resumeDocxText, resumeSchema) {
-  const resumeSchemaString = JSON.stringify(resumeSchema, null, 2);
-
-  const prompt = `
-  Please convert the following resume text 
-  into a JSON object that conforms to the 
-  provided resume schema. 
-  Return only the JSON object without any 
-  other text.
-
-  The resume text starts here:
-      ${resumeDocxText}
-  The resume text ends here.
-
-  The resume schema starts here:
-      ${resumeSchemaString}
-  The resume schema ends here.
-  `;
-  console.log(`<PROMPT>${prompt}</PROMPT>`);
-  return prompt;
-}
-
-async function saveResumeData(resumeDocxJsonPath, resumeDocxData) {
+async function getResumDocxText(resumeDocxPath){
     try {
-        const resumeDocxDataString = JSON.stringify(resumeDocxData, null, 2);
-        await fs.writeFile(resumeDocxJsonPath, resumeDocxDataString);
+        const fileBuffer = await fs.readFile(resumeDocxPath);
+        const result = await mammoth.extractRawText({ buffer: fileBuffer });
+        return result.value;
+    } catch (error) {
+        console.error('Error reading resume docx:', error);
+        throw error;
+    }
+}
+
+async function getResumeDataPrompt(resumeDocxPath) {
+    try {
+        const resumeDocxText = await getResumDocxText(resumeDocxPath);
+        const resumeSchema = await getResumeSchema()
+        const resumeSchemaString = JSON.stringify(resumeSchema, null, 2);
+
+        const prompt = `
+        Please convert the following resume text 
+        into a JSON object that conforms to the 
+        provided resume schema. 
+        Please return only the stringified JSON object string
+        without any other text.
+
+        The resume text starts here:
+            ${resumeDocxText}
+        The resume text ends here.
+
+        The resume schema starts here:
+            ${resumeSchemaString}
+        The resume schema ends here.
+        `;
+        return prompt;
+    } catch (error) {
+        console.error('Error creating resume data prompt:', error);
+        throw error;
+    }
+}
+
+
+async function saveResumeDocxJson(resumeDocxDataPath, resumeDocxJson) {
+    try {
+        await fs.writeFile(resumeDocxDataPath, resumeDocxJson);
     } catch (error) {
         console.error(`Error saving resume data:`, error);
         throw error;
     }
 }
 
-  // input: resumeDocxPath
-  // convert the resume document at 
-  // resumeDocxPath of a MSWord .docx file)
-  // to plain text and use it to create 
-  // a prompt for the LLM to convert it to
-  // structured resume data and save it to
-  // output: resumeDocxDataPath (JSON)
-  async function processDocxResume(resumeDocxDataPath, resumeDocxPath) {  
+// function to process DOCX resume at resumeDocxPath 
+// and return extracted structure as a resumeDocxData object
+async function processDocxResume(resumeDocxPath) {
     try {
-        const resumeSchema = await getResumeSchema(RESUME_SCHEMA_PATH);
-        const resumeSchemaString = JSON.stringify(resumeSchema, null, 2);
-        const resumeDocx = await fs.readFile(resumeDocxPath);
-        const { value: resumeDocxText } = await mammoth.extractRawText({ buffer: resumeDocx });
+        // Retrieve the prompt text from the DOCX file
+        const promptText = await getResumeDataPrompt(resumeDocxPath);
 
-        prompt_text =```
-        Please convert the following resume text 
-        into a JSON object that conforms to the 
-        provided resume schema.
-
-        The resume text starts here:
-        ${resumeDocxText}
-        The resume text ends here.
-
-        The resume schema starts here:
-        ${resumeSchemaString}
-        The resume schema ends here.
-        
-        Please provide only the JSON object in 
-        your response, with no additional text.
-        ```;
-
-
+        // Initialize the API client
         const client = new Client({
             apiKey: process.env.ANTHROPIC_API_KEY,
         });
 
-        start_time_millis = Date.now();
-        console.log(`prompt sent to ${model}`);
-
-        const model = "claude-3-sonnet-20240229";
-
-        async function createMessage(promptText) {
-            const response = await client.completions.create({
-                model: model, // Replace with your actual model name
-                max_tokens: 4000,
-                temperature: 0,
-                system: "You are an expert at using resume schemas to convert resume text into structured resume objects.",
-                messages: [
-                    { role: "user", content: promptText }
-                ]
-            });
-            const responseData = response.data;
-
-            const elapsed_seconds = ((Date.now() - start_time_millis)/1000).toFixed(2);
-            console.log(`resume processed in ${elapsed_seconds} seconds`);
-
-            // get the extracted resume data and save it to the output json file
-            const resumeDocxData = responseData.choices[0].message.content;
-            await saveResumeData(resumeDocxDataPath, resumeDocxData);
-        }
+        // Define model and parameters
+        // model "claude-3-sonnet-20240229"; is not supported on this API
+        const model = "claude-2.1";
+        const maxTokens = 4000;
+        const temperature = 0;
     
+        // log the start time
+        const startTimeMilllis = Date.now();
+        console.log(`prompt sent to ${model}`);
+   
+        // send the prompt to the model and await the response
+        const response = await client.completions.create({
+            model: model,
+            max_tokens_to_sample: maxTokens, // Use max_tokens instead of max_tokens_to_sample
+            temperature: temperature,
+            // system: "You are an expert at using resume schemas to convert resume text into structured resume objects.",
+            prompt: "\n\nHuman:" + promptText + "\n\nAssistant:"
+        });
+
+        // Extract the structured resume data from the response
+        const prefix = " Here is the stringified JSON resume object conforming to the provided schema:\n\n";
+        const resumeDocxJson = response.completion.replace(prefix,'');
+        const resumeDocxJsonObj = JSON.parse(resumeDocxJson);
+        const formattedResumeDocxJson = JSON.stringify(resumeDocxJsonObj, null, 4);
+
+        // Calculate and log the elapsed time for processing the resume
+        const elapsedSeconds = ((Date.now() - startTimeMilllis)/1000).toFixed(2);
+        console.log(`resume processed in ${elapsedSeconds} seconds`);
+
+        // Return the structured resume data
+        return formattedResumeDocxJson;
     } catch (error) {
+        // Catch and log any errors that occur during the processing of the resume
         console.error('Error processing resume:', error);
         throw error;
     }
 }
 
 async function main() {
-// Call the processResume function
-  try {
+// Call the processDocxResume function
+    try {
 
-      // input: resumeDocxPath
-      // convert the MSWord .docx file 
-      // to plain text and use it to create 
-      // a prompt for the LLM to convert it to
-      // structured resume data and save it to
-      // output: resumeDocxDataPath (JSON)
+        const resumeDocxPath = './inputs/proj-mngr-resume.docx';
+        const resumeDocxDataPath = './outputs/proj-mngr-resume-docx.json';
 
-      const resumeDocxPath = './inputs/proj-mngr-resume.docx';
-      const resumeDocxDataPath = './outputs/proj-mngr-resume-docx.json';
+        const resumeDocxJson = await processDocxResume(resumeDocxPath);
 
-      await processDocxResume(resumeDocxDataPath, resumeDocxPath);
+        // Save the structured resume data to the specified path 
+        // and wait for the operation to complete
+        await saveResumeDocxJson(resumeDocxDataPath, resumeDocxJson);
       
   } catch (error) {
       console.error('Error processing resume:', error);
