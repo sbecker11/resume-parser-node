@@ -8,3 +8,11 @@ Use the prompt to an LLM and save the resulting
 resume data to outputs/resume-docx.json
 
 ```npm run start```
+
+## Langchain installation
+npm install langchain
+npm i @langchain/core
+
+
+npm install langchain.prompts FAILS
+npm install langchain_core.messages FAILS

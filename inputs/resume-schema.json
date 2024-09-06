@@ -1,5 +1,9 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$schema": "http://json-schema.org/draft-07/schema#", 
+    "$id": "http://not-a-real-domain/resume.schema.json",
+    "title": "Resume tool",
+    "description": "Defines structure of a resume json file",
+
     "type": "object",
     "properties": {
         "contactInformation": {
@@ -77,9 +81,7 @@
         "skills": {
             "type": "string"
         },
-        "certifications": {
-            "type": "string"
-        },
+
         "publications": {
             "type": "string"
         },
@@ -91,6 +93,9 @@
             "items": {
                 "type": "string"
             }
+        },
+        "certifications": {
+            "type": "string"
         }
     },
     "required": [

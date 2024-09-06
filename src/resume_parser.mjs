@@ -1,8 +1,7 @@
 import 'dotenv/config';
-//import { axios } from "@pipedream/platform"; 
 import { promises as fs } from 'fs';
 import mammoth from 'mammoth';
-import Client from "@anthropic-ai/sdk";
+import Anthropic from '@anthropic-ai/sdk';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 if ( !ANTHROPIC_API_KEY ) {
@@ -63,7 +62,9 @@ async function getResumeDataPrompt(resumeDocxPath) {
 
 async function saveResumeDocxJson(resumeDocxDataPath, resumeDocxJson) {
     try {
-        await fs.writeFile(resumeDocxDataPath, resumeDocxJson);
+        const resumeDocxJsonStr = JSON.stringify(resumeDocxJson, null, 2);
+        await fs.writeFile(resumeDocxDataPath, resumeDocxJsonStr);
+        console.log("Resume processed and saved to " + resumeDocxDataPath);
     } catch (error) {
         console.error(`Error saving resume data:`, error);
         throw error;
@@ -77,42 +78,65 @@ async function processDocxResume(resumeDocxPath) {
         // Retrieve the prompt text from the DOCX file
         const promptText = await getResumeDataPrompt(resumeDocxPath);
 
-        // Initialize the API client
-        const client = new Client({
-            apiKey: process.env.ANTHROPIC_API_KEY,
+        // Create an instance of the Anthropic SDK
+        const anthropic = new Anthropic({ 
+            apiKey: ANTHROPIC_API_KEY 
         });
 
-        // Define model and parameters
-        // model "claude-3-sonnet-20240229"; is not supported on this API
-        const model = "claude-2.1";
-        const maxTokens = 4000;
-        const temperature = 0;
-    
+        // Define modelType and model parameters
+        // model "claude-3-sonnet-20240229", "claude-3-opus-20240229" not supported on this API
+        const modelType= "claude-2.1";
+        const modelMaxTokens = 4000;
+        const modelTemperature = 0;
+
         // log the start time
-        const startTimeMilllis = Date.now();
-        console.log(`prompt sent to ${model}`);
+        const startMillis = Date.now();
+        console.log(`prompt sent to ${modelType}`);
    
         // send the prompt to the model and await the response
-        const response = await client.completions.create({
-            model: model,
-            max_tokens_to_sample: maxTokens, // Use max_tokens instead of max_tokens_to_sample
-            temperature: temperature,
-            // system: "You are an expert at using resume schemas to convert resume text into structured resume objects.",
-            prompt: "\n\nHuman:" + promptText + "\n\nAssistant:"
+        const response = await anthropic.messages.create({
+            model: modelType,
+            max_tokens: modelMaxTokens,
+            temperature: modelTemperature,
+            messages: [{ role: "user", content: promptText }]
         });
 
-        // Extract the structured resume data from the response
-        const prefix = " Here is the stringified JSON resume object conforming to the provided schema:\n\n";
-        const resumeDocxJson = response.completion.replace(prefix,'');
-        const resumeDocxJsonObj = JSON.parse(resumeDocxJson);
-        const formattedResumeDocxJson = JSON.stringify(resumeDocxJsonObj, null, 4);
-
         // Calculate and log the elapsed time for processing the resume
-        const elapsedSeconds = ((Date.now() - startTimeMilllis)/1000).toFixed(2);
+        const elapsedSeconds = ((Date.now() - startMillis) / 1000).toFixed(2);
         console.log(`resume processed in ${elapsedSeconds} seconds`);
 
-        // Return the structured resume data
-        return formattedResumeDocxJson;
+        // Extract the content from the response
+        const text = response.content[0].text;
+
+        // Extract the structured resume data from the response
+        const prefixes = [
+            "Here is the stringified JSON resume object conforming to the provided schema:\n\n```json",
+            "Here is the JSON resume object string conforming to the provided schema:\n\n```json",
+            " Here is the JSON resume object string conforming to the provided schema:\n\n```json",
+            "Here is the resume text converted to a JSON object string conforming to the provided schema:\n\n```json"
+        ];
+        let resumeDocxJsonStr = null;
+        for ( let prefix of prefixes ) {
+            if ( text.includes(prefix) ) {
+                resumeDocxJsonStr = text.replace(prefix,'');
+                break;
+            }
+        }
+        if ( !resumeDocxJsonStr ) {
+            throw new Error(`Unexpected text format: ${text}`);
+        }
+        if ( resumeDocxJsonStr.includes('```') ) {
+            resumeDocxJsonStr = resumeDocxJsonStr.replace('```','');
+        }
+
+        try {
+            // Return the structured resume data
+            const resumeDocxJsonObj = JSON.parse(resumeDocxJsonStr);
+            return resumeDocxJsonObj;
+        } catch (error) {
+            console.error('Error processing resume:', error);
+            throw error;
+        }
     } catch (error) {
         // Catch and log any errors that occur during the processing of the resume
         console.error('Error processing resume:', error);
@@ -123,15 +147,17 @@ async function processDocxResume(resumeDocxPath) {
 async function main() {
 // Call the processDocxResume function
     try {
+        const resumeDocxPath = './inputs/data-engineer.docx';
+        const resumeDocxDataPath = './outputs/data-engineer-notlangchain.json';
 
-        const resumeDocxPath = './inputs/proj-mngr-resume.docx';
-        const resumeDocxDataPath = './outputs/proj-mngr-resume-docx.json';
-
-        const resumeDocxJson = await processDocxResume(resumeDocxPath);
+        const resumeDocxJsonObj = await processDocxResume(resumeDocxPath);
+        if ( !resumeDocxJsonObj ) {
+            throw new Error('Error processing resume');
+        }
 
         // Save the structured resume data to the specified path 
         // and wait for the operation to complete
-        await saveResumeDocxJson(resumeDocxDataPath, resumeDocxJson);
+        await saveResumeDocxJson(resumeDocxDataPath, resumeDocxJsonObj);
       
   } catch (error) {
       console.error('Error processing resume:', error);
