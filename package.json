@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node src/resume_parser.mjs",
-    "start-langchain": "node src/resume_parser_langchain.mjs",
+    "debug-langchain": "node --inspect src/resume_parser_langchain.mjs",
+    "skills-updater": "node src/resume_skills_updater.mjs",
     "test": "echo \"Error: no test specified\" && exit 1",
     "validate": "node src/validate_data_object.mjs ./inputs/resume-schema.json ./outputs/proj-mngr-resume-docx.json"
   },
@@ -25,6 +26,7 @@
     "langchain": "^0.2.18",
     "langchain-core": "^0.0.4",
     "mammoth": "^1.8.0",
-    "openai": "^4.58.0"
+    "openai": "^4.58.0",
+    "xlsx": "^0.18.5"
   }
 }
