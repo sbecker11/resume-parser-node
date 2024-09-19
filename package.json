@@ -4,11 +4,12 @@
   "main": "src/resume_parser.mjs",
   "type": "module",
   "scripts": {
-    "start": "node src/resume_parser.mjs",
+    "data-engineer-docx": "node src/resume_parser.mjs ./inputs/resume-schema.json ./inputs/data-engineer.docx ./outputs/data-engineer.json",
+    "linkedin-parser-langchain": "node src/linkedin_parser_langchain.mjs ./inputs/linkedin-schema.json ./inputs/linkedin-resume.docx ./outputs/linkedin-resume.json",
     "debug-langchain": "node --inspect src/resume_parser_langchain.mjs",
-    "skills-updater": "node src/resume_skills_updater.mjs",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "validate": "node src/validate_data_object.mjs ./inputs/resume-schema.json ./outputs/proj-mngr-resume-docx.json"
+    "clean-node": "rm -rf ./node_modules ./package-lock.json && npm cache clean --force",
+    "validate": "node src/validate_data_object.mjs ./inputs/resume-schema.json ./outputs/linkedin-resume.json"
   },
   "keywords": [],
   "author": "Shawn Becker",

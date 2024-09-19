@@ -29,6 +29,7 @@ async function main() {
     const args = process.argv.slice(2);
     if (args.length !== 2) {
         console.error("Usage: node src/validate_data_object.mjs inputs/<schemaFilePath> outputs/<dataFilePath>");
+        consold.error("Use the given schema file to validate the given data file");
         process.exit(1);
     }
 

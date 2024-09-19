@@ -1,0 +1,186 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://not-a-real-domain/resume.schema.json",
+  "title": "LinkedInResume tool",
+  "description": "Defines structure of a linkedin experiances section",
+  "type": "object",
+  "properties": {
+    "resumeFirstLastName": {
+      "type": "string"
+    },
+    "resumeEmail": {
+      "type": "string"
+    },
+    "resumePhone}": {
+      "type": "string"
+    },
+    "resumeContactInformation": {
+      "type": "string"
+    },
+    "resumeTitle": {
+      "type": "string"
+    },
+    "resumePrologue": {
+      "type": "string"
+    },
+    "workExperience": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "employmentCompanyName": {
+            "type": "string"
+          },
+          "employmentCompanyLocation": {
+            "type": "string"
+          },
+          "employmentType": {
+            "type": "string",
+            "description": "The type of employment (e.g. full-time, part-time, contract)",
+            "enum": ["full-time", "part-time", "contract"]
+          },
+          "employomentLocation": {
+            "type": "string",
+            "description": "The location of employment (e.g. remote, on-site, hybrid)",
+            "enum": ["remote", "onsite", "hybrid"]
+          },
+          "employmentDuration": {
+            "type": "object",
+            "properties": {
+              "start": {
+                "type": "string"
+              },
+              "end": {
+                "type": "string"
+              }
+            },
+            "required": ["end", "start"]
+          },
+          "employmentPosition": {
+            "type": "string",
+            "description": "The position held at the employment"
+          },
+          "enploymentResponsibilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "A bulleted list of responsiblities of the work experience"
+          },
+          "employmentSkills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "A bulleted list of skills relevant to the work experience"
+          }
+        },
+        "required": [
+          "employmentCompanyName",
+          "employmentType",
+          "employmentDuration",
+          "employmentLocation",
+          "employmentPosition",
+          "enploymentResponsibilities"
+        ]
+      }
+    },
+    "education": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "institutionUniversity": {
+            "type": "string",
+            "description": "The name of the institution or university"
+          },
+          "degree": {
+            "type": "string",
+            "enum": ["PhD", "Masters", "Bachelors", "Associates", "High School"]
+          },
+          "collegeDepoartment": {
+            "type": "string",
+            "description": "The department of the college, e.g. Computer Science, Mathemetics, Mechanical Design"
+          },
+          "discipline": {
+            "type": "string",
+            "description": "The discipline of the education, e.g. Computer Science, Mathemetics, Mechanical Design"
+          },
+          "GPAScore": {
+            "type": "number",
+            "description": "The GPA score of the education",
+            "minimum": 2.0,
+            "maximum": 4.0
+          },
+          "educatonDuration": {
+            "type": "object",
+            "properties": {
+              "start": {
+                "type": "string"
+              },
+              "end": {
+                "type": "string"
+              }
+            },
+            "description": "The start and/or end of the education"
+          },
+          "discertationThesisTitle": {
+            "type": "string"
+          },
+          "topicsSkills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "A bulleted list of topics and skills relevant to the education"
+          },
+          "educationPublications": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "A bulleted list of publications relevant to the education"
+          }
+        },
+        "required": [
+          "institutionUniversity", 
+          "degree"
+        ]
+      }
+    },
+    "resumeSummarySkills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A bulleted list of summarizing skills relevant to resume"
+    },
+    "publicationsWebsite": {
+      "type": "string",
+      "description": "A link to a website with publications"
+    },
+    "patentsWebsite": {
+      "type": "string",
+      "description": "A link to a website with patents"
+    },
+    "certificationsWebsite": {
+      "type": "string",
+      "description": "A link to a website with certifications"
+    },
+    "personalWebsites": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A bulleted list of personal websites"
+    }
+  },
+  "required": [
+    "resumeFirstLastName",
+    "resumeTitle",
+    "resumeEmail",
+    "workExperience",
+    "education"
+  ],
+  "additionalProperties": false
+}

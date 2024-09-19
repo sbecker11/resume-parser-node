@@ -8,11 +8,9 @@ if ( !ANTHROPIC_API_KEY ) {
     throw new Error('ANTHROPIC_API_KEY environment variable is not set');
 }
 
-const RESUME_SCHEMA_PATH =   './inputs/resume-schema.json';
-
-async function getResumeSchema() {
+async function getResumeSchema(resumeSchemaPath) {
   try {
-    const resumeSchema = await fs.readFile(RESUME_SCHEMA_PATH, 'utf8');
+    const resumeSchema = await fs.readFile(resumeSchemaPath, 'utf8');
     return resumeSchema;
   } catch (error) {
       console.error('Error reading resume schema:', error);
@@ -31,10 +29,10 @@ async function getResumDocxText(resumeDocxPath){
     }
 }
 
-async function getResumeDataPrompt(resumeDocxPath) {
+async function getResumeDataPrompt(resumeDocxPath, resumeSchemaPath) {
     try {
         const resumeDocxText = await getResumDocxText(resumeDocxPath);
-        const resumeSchema = await getResumeSchema()
+        const resumeSchema = await getResumeSchema(resumeSchemaPath);
         const resumeSchemaString = JSON.stringify(resumeSchema, null, 2);
 
         const prompt = `
@@ -73,10 +71,10 @@ async function saveResumeDocxJson(resumeDocxDataPath, resumeDocxJson) {
 
 // function to process DOCX resume at resumeDocxPath 
 // and return extracted structure as a resumeDocxData object
-async function processDocxResume(resumeDocxPath) {
+async function processDocxResume(resumeDocxPath, resumeSchemaPath) {
     try {
         // Retrieve the prompt text from the DOCX file
-        const promptText = await getResumeDataPrompt(resumeDocxPath);
+        const promptText = await getResumeDataPrompt(resumeDocxPath, resumeSchemaPath);
 
         // Create an instance of the Anthropic SDK
         const anthropic = new Anthropic({ 
@@ -145,24 +143,30 @@ async function processDocxResume(resumeDocxPath) {
 }
 
 async function main() {
-// Call the processDocxResume function
+    // Get command line arguments
+    const args = process.argv.slice(2);
+    
+    // Set default values
+    const resumeSchemaPath = args[0] || './inputs/linkedin-schema.json';
+    const resumeDocxPath = args[1] || './inputs/data-engineer.docx';
+    const resumeDocxDataPath = args[2] || './outputs/data-engineer.json';
+  
+    // Call the processDocxResume function
     try {
-        const resumeDocxPath = './inputs/data-engineer.docx';
-        const resumeDocxDataPath = './outputs/data-engineer-notlangchain.json';
+        console.log(`Using resume schema path: ${resumeSchemaPath}`);
+        console.log(`Using resume docx path: ${resumeDocxPath}`);
+        console.log(`Using resume docx data path: ${resumeDocxDataPath}`);
+        
+        await fs.access(resumeSchemaPath, fs.constants.R_OK);
+        await fs.access(resumeDocxPath, fs.constants.R_OK);
 
-        const resumeDocxJsonObj = await processDocxResume(resumeDocxPath);
-        if ( !resumeDocxJsonObj ) {
-            throw new Error('Error processing resume');
-        }
+        await processDocxResume(resumeSchemaPath, resumeDocxPath, resumeDocxDataPath);
 
-        // Save the structured resume data to the specified path 
-        // and wait for the operation to complete
-        await saveResumeDocxJson(resumeDocxDataPath, resumeDocxJsonObj);
-      
-  } catch (error) {
-      console.error('Error processing resume:', error);
-      throw error;
-  }
+    } catch (error) {
+        console.error('Error processing resume:', error);
+    }
 }
 
+// Call the main function
 main();
+

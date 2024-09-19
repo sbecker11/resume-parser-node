@@ -8,8 +8,6 @@ import { ChatAnthropic } from "@langchain/anthropic"; // uopdated to reference O
 import { PromptTemplate } from '@langchain/core/prompts';
 import { JsonOutputParser } from "@langchain/core/output_parsers";
 import fs from 'fs/promises';
-import { processResumeWithSkills } from './resume_skills_updater.mjs';
-
 
 // npm install @langchain/core
 // npm install @langchain/community
@@ -23,13 +21,27 @@ if ( !ANTHROPIC_API_KEY ) {
 
 let resumeText = null;
 
-async function processResume(
-  resumeOutputJsonPath, 
-  resumeInputDocxPath, 
-  resumeInputSchemaPath) {
+async function processLinkedinResume(
+    inputLinkedinSchemaPath,
+    inputLinkedinResumeDocxPath, 
+    outputLinkedinResumeDataPath) {
+
+      console.log(`Received inputLinkedinSchemaPath:      ${inputLinkedinSchemaPath}`);
+      console.log(`Received inputLinkedinResumeDocxPath:  ${inputLinkedinResumeDocxPath}`);
+      console.log(`Received outputLinkedinResumeDataPath: ${outputLinkedinResumeDataPath}`);
   
+    if (!inputLinkedinSchemaPath.includes('inputs') || !inputLinkedinSchemaPath.endsWith('json')) {
+      throw new Error('inputLinkedinSchemaPath must be a json file in the inputs directory');
+    }
+    if (!inputLinkedinResumeDocxPath.includes('inputs') || !inputLinkedinResumeDocxPath.endsWith('.docx')) {
+      throw new Error('inputLinkedinResumeDocxPath must be a docx file in the inputs directory');
+    }
+    if (!outputLinkedinResumeDataPath.includes('outputs') || !outputLinkedinResumeDataPath.endsWith('.json')) {
+      throw new Error('outputLinkedinResumeDataPath must be a json file in the outputs directory');
+    }
+
     // Load the resume
-    const loader = new DocxLoader(resumeInputDocxPath);
+    const loader = new DocxLoader(inputLinkedinResumeDocxPath);
     const [doc] = await loader.load();
     resumeText = doc.pageContent;
         
@@ -37,7 +49,7 @@ async function processResume(
     let schemaObj = null;
     let schemaText = null;
     try {
-        const rawSchemaString = await fs.readFile(resumeInputSchemaPath, 'utf-8');
+        const rawSchemaString = await fs.readFile(inputLinkedinSchemaPath, 'utf-8');
         schemaObj = JSON.parse(rawSchemaString);
         schemaText = JSON.stringify(schemaObj,null,2);
     } catch (error) {
@@ -46,7 +58,7 @@ async function processResume(
       
     // Create a prompt template
     const promptTemplate = new PromptTemplate({
-      template: "Convert the following resume text to a JSON object that conforms to the provided schema:\n\nResume text:\n{resumeText}\n\nSchema:\n{schemaText}\n\nJSON output:",
+      template: "Convert the following ResumeText to a JSON object that conforms to the provided ResumeSchema:\n\nResumeTextStart:\n{resumeText}\n:ResumeTextEnd\nResumeSchemaStart:\n{schemaText}\n:ResumeSchemaEnd\nJSON output:",
       inputVariables: ["resumeText", "schemaText"],
     });
   
@@ -92,10 +104,10 @@ async function processResume(
     }
 
     // Save the result
-    await fs.writeFile(resumeOutputJsonPath, JSON.stringify(jsonOutputObj, null, 2));
+    await fs.writeFile(outputLinkedinResumeDataPath, JSON.stringify(jsonOutputObj, null, 2));
   
     // declare success
-    console.log("Resume processed and saved to " + resumeOutputJsonPath);
+    console.log("Resume processed and saved to " + outputLinkedinResumeDataPath);
 }
 
 async function processContentStr(contentStr) {
@@ -143,63 +155,62 @@ async function processContentStr(contentStr) {
 }
 
 async function main() {
+  // Get command line arguments
+  const args = process.argv.slice(2);
+  
+  // Set default values
+  const inputLinkedinSchemaPath =       args[0] || './inputs/linkedin-schema.json';
+  const inputLinkedinResumeDocxPath =   args[1] || './inputs/linkedin-resume.docx';
+  const outputLinkedinResumeDataPath =  args[2] || './outputs/linkedin-resume.json';
 
-  // verity that these files are readable
-  const requiredReadOnlyFiles = [
-    './inputs/data-engineer.docx',
-    './inputs/skills.xlsx'
-  ];
+  // Function to print usage
+  function printUsage() {
+    console.log('Usage: node linkedin_parser_langchain.mjs <inputLinkedinSchemaPath> <inputLinkedinResumeDocxPath> <outputLinkedinResumeDataPath>');
+    console.log('Example: node linkedin_parser_langchain.mjs ./inputs/resume-schema.json ./inputs/data-engineer.docx ./outputs/data-engineer-notlangchain.json');
+  }
 
-  for ( const file of requiredReadOnlyFiles ) {
+  // Check if all required arguments are provided
+  if (args.length < 3) {
+    console.error('Error: Missing required arguments.');
+    printUsage();
+    process.exit(1);
+  }
+
+  // Verify that the input files exist and are readable
+  try {
+    await fs.access(inputLinkedinSchemaPath, fs.constants.R_OK);
+    await fs.access(inputLinkedinResumeDocxPath, fs.constants.R_OK);
+  } catch (error) {
+    console.error('Error: One or more input files are not readable.');
+    printUsage();
+    process.exit(1);
+  }
+
+  // Verify that the output file is writable
+  try {
+    await fs.access(outputLinkedinResumeDataPath, fs.constants.W_OK);
+  } catch (error) {
     try {
-      await fs.access(file, fs.constants.R_OK);
-    } catch (error) {
-      throw new Error(`File ${file} is missing or not readable`);
+      // Try to create the file if it doesn't exist
+      await fs.writeFile(outputLinkedinResumeDataPath, '');
+    } catch (writeError) {
+      console.error('Error: Output file is not writable.');
+      printUsage();
+      process.exit(1);
     }
   }
 
-  // verify that these files are both readable and writeable
-  const requiredReadWriteableFiles = [
-    './inputs/resume-schema.json',
-  ];
+  try {
+    console.log(`Submitting inputLinkedinSchemaPath:      ${inputLinkedinSchemaPath}`);
+    console.log(`Submitting inputLinkedinResumeDocxPath:  ${inputLinkedinResumeDocxPath}`);
+    console.log(`Submitting outputLinkedinResumeDataPath: ${outputLinkedinResumeDataPath}`);
 
-  for ( const file of requiredReadWriteableFiles ) {
-    try {
-      // check if the file is both readable and writeable
-      await fs.access(file, fs.constants.R_OK | fs.constants.W_OK);
-    } catch (error) {
-        console.error(`Error accessing file ${file}:`, error);
-        throw new Error(`File ${file} is missing or not readable or writeable`);
-    }
+    await processLinkedinResume(inputLinkedinSchemaPath, inputLinkedinResumeDocxPath, outputLinkedinResumeDataPath);
+
+  } catch (error) {
+    console.error('Error processing resume:', error);
   }
-
-  // use langchain and an LLM to extract 
-  // the resume data that conformes to the 
-  // given resume schema from a resume docx file
-  // and save it to a new resume data file.
-  await processResume(
-    './outputs/data-engineer.json', // the writeable output resume data file
-    './inputs/data-engineer.docx',  // the read-only input resume docx file
-    './inputs/resume-schema.json' // the read-only resume schema file
-  );
-
-  // Read the given resume schema and if needed update it
-  // to include a new "skills" property for each work 
-  // experience entry and save the updated resume schema
-  // to its original file.
-  // Then extract skills from the given skill.xlsx file
-  // and load the newly created resume data file. 
-  // Use the skills associated with each work experience entry
-  // to update its "skills" property. Finally, verify that
-  // the updated resume data is valid against the possibly 
-  // updated resume schmem and if valid save the updated 
-  // resume data to the same file.
-
-  await processResumeWithSkills(
-    './inputs/resume-schema.json', // the read/writable resume schema file
-    './outputs/data-engineer.json', // the read/writeable resume data file
-    './inputs/skills.xlsx' // the read-only skills spreadsheet file
-  );
 }
 
+// Call the main function
 main().catch(console.error);
